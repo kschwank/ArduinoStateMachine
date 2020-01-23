@@ -24,8 +24,8 @@ public:
         _entryName = "Item: " + getToNodeId();
         _entryDescription = ""; // std::string("Link from ", getFromNodeId(), " to " + getToNodeId());
     }
-    MenuItemLink(std::string entryName, std::string entryDescription, node_id_t startId, node_id_t endId, long data = 0, void* extData = nullptr)
-    : Edge(startId, endId, nullptr, data, extData), _entryName(entryName), _entryDescription(entryDescription) { }
+    MenuItemLink(std::string entryName, std::string entryDescription, node_id_t startId, node_id_t endId, edge_event onTransition = nullptr, long data = 0, void* extData = nullptr)
+    : Edge(startId, endId, onTransition, data, extData), _entryName(entryName), _entryDescription(entryDescription) { }
 
     std::string getEntryName() {
         return _entryName;
@@ -41,8 +41,8 @@ class MenuStateManager : public StateManager {
 private:
     MenuItemLink *findItemLinkByKey(std::string entryName, std::vector<Edge*> *transitions) {
         transitions->begin();
-        for (auto *edge : *transitions) {
-            MenuItemLink *itemLink = (MenuItemLink*)edge;
+        for (auto edge : *transitions) {
+            MenuItemLink *itemLink = static_cast<MenuItemLink*>(edge);
             if (entryName.compare(itemLink->getEntryName()) == 0) {
                 return itemLink;
             }
@@ -64,8 +64,8 @@ public:
         std::string menuString = "Menu: '" + getActiveNode()->getName() + "':\n";
 
         auto transitions = getPossibleTransitions();
-        for (Edge *edge : *transitions) {
-            MenuItemLink *itemLink = (MenuItemLink*)edge;
+        for (auto edge : *transitions) {
+            MenuItemLink *itemLink = static_cast<MenuItemLink*>(edge);
             menuString += itemLink->getEntryName() + ": " + itemLink->getEntryDescription() + "\n";
         }
 
