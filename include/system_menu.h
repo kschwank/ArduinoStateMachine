@@ -11,10 +11,8 @@ typedef void (*onEnterMenuItem)();
 
 class MenuItem: public Node {
 public:
-    MenuItem(node_id_t id, std::string name, node_enter_event onEnter = nullptr, node_before_enter_event beforeEnter = nullptr, node_before_exit_event beforeExit = nullptr)
-    : Node(id, name, onEnter, beforeEnter, beforeExit) {
-        // ctor
-    }
+    MenuItem(node_id_t id, std::string name, node_enter_event onEnter = nullptr, node_before_enter_event beforeEnter = nullptr, node_before_exit_event beforeExit = nullptr, long data = 0, void *extData = nullptr)
+    : Node(id, name, onEnter, beforeEnter, beforeExit, data, extData) { }
 };
 
 class MenuItemLink: public Edge {
@@ -26,7 +24,8 @@ public:
         _entryName = "Item: " + getToNodeId();
         _entryDescription = ""; // std::string("Link from ", getFromNodeId(), " to " + getToNodeId());
     }
-    MenuItemLink(std::string entryName, std::string entryDescription, node_id_t startId, node_id_t endId): Edge(startId, endId), _entryName(entryName), _entryDescription(entryDescription) { }
+    MenuItemLink(std::string entryName, std::string entryDescription, node_id_t startId, node_id_t endId, long data = 0, void* extData = nullptr)
+    : Edge(startId, endId, nullptr, data, extData), _entryName(entryName), _entryDescription(entryDescription) { }
 
     std::string getEntryName() {
         return _entryName;
