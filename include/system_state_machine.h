@@ -21,6 +21,8 @@ typedef bool (*node_before_exit_event)(node_id_t);
 
 typedef bool (*edge_event)(Edge *edge);
 
+#define DEFAULT_ROOT_NODE_ID 0
+
 class Node {
     friend StateManager;
 
@@ -63,7 +65,11 @@ private:
     std::map<node_id_t, Node*> _nodes;
     std::map<node_id_t, std::vector<Edge*>> _edges;
 public:
-    explicit StateManager(Node *startNode): _start(startNode) {
+    explicit StateManager(Node *startNode = nullptr): _start(startNode) {
+        if (!startNode) {
+            startNode = new Node(DEFAULT_ROOT_NODE_ID, "");
+            _start = startNode;
+        }
         _nodes = { {startNode->_id, startNode } };
         _edges = { };
         _active = _start;

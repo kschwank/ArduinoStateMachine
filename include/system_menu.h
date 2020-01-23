@@ -51,7 +51,7 @@ private:
         return nullptr;
     }
 public:
-    MenuStateManager(MenuItem *rootMenuItem): StateManager(rootMenuItem) { }
+    MenuStateManager(MenuItem *rootMenuItem = nullptr): StateManager(rootMenuItem) { }
 
     bool handleCommand(std::string cmd) {
         MenuItemLink *menuItemLink = findItemLinkByKey(cmd, getPossibleTransitions());

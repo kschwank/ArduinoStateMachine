@@ -25,24 +25,22 @@ void setup() {
     delay(10000);
 
     Serial.println("creating root node");
-    Node *rootNode = new Node(0, "/", rootNodeEnter);
-
-    stateManager = new StateManager(rootNode);
+    stateManager = new StateManager();
 
     stateManager->addNode(new Node(1, "01"));
     stateManager->addNode(new Node(2, "02"));
     stateManager->addNode(new Node(3, "03"));
     stateManager->addNode(new Node(4, "04"));
 
-    stateManager->addEdge(new Edge(0, 1, printTransition));
-    stateManager->addEdge(new Edge(0, 2, printTransition));
-    stateManager->addEdge(new Edge(0, 3, printTransition));
-    stateManager->addEdge(new Edge(0, 4, printTransition));
+    stateManager->addEdge(new Edge(DEFAULT_ROOT_NODE_ID, 1, printTransition));
+    stateManager->addEdge(new Edge(DEFAULT_ROOT_NODE_ID, 2, printTransition));
+    stateManager->addEdge(new Edge(DEFAULT_ROOT_NODE_ID, 3, printTransition));
+    stateManager->addEdge(new Edge(DEFAULT_ROOT_NODE_ID, 4, printTransition));
 
-    stateManager->addEdge(new Edge(1, 0, printTransition));
-    stateManager->addEdge(new Edge(2, 0, printTransition));
-    stateManager->addEdge(new Edge(3, 0, printTransition));
-    stateManager->addEdge(new Edge(4, 0, printTransition));
+    stateManager->addEdge(new Edge(1, DEFAULT_ROOT_NODE_ID, printTransition));
+    stateManager->addEdge(new Edge(2, DEFAULT_ROOT_NODE_ID, printTransition));
+    stateManager->addEdge(new Edge(3, DEFAULT_ROOT_NODE_ID, printTransition));
+    stateManager->addEdge(new Edge(4, DEFAULT_ROOT_NODE_ID, printTransition));
 
     auto transitions = stateManager->getPossibleTransitions();
 
