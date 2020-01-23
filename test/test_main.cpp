@@ -6,8 +6,7 @@
 #include "system_menu.h"
 
 MenuStateManager *setupMenu() {
-    MenuItem *rootItem = new MenuItem(0, "/");
-    MenuStateManager *menuStateManager = new MenuStateManager(rootItem);
+    MenuStateManager *menuStateManager = new MenuStateManager();
     menuStateManager->addNode(new MenuItem(1, "01"));
     menuStateManager->addNode(new MenuItem(2, "02"));
     menuStateManager->addNode(new MenuItem(11, "011"));
