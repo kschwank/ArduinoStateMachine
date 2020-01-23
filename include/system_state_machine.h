@@ -14,12 +14,25 @@ class Node;
 class Edge;
 class StateManager;
 
-// State Event Definitions
-typedef void (*node_enter_event)(Node *node);
-typedef bool (*node_before_enter_event)(node_id_t);
-typedef bool (*node_before_exit_event)(node_id_t);
+typedef struct {
+    Node* node;
+    node_id_t nodeId;
+    long data;
+    void* extData;
+} node_event_data;
 
-typedef bool (*edge_event)(Edge *edge);
+typedef struct {
+    Edge* edge;
+    long data;
+    void *extData;
+} edge_event_data;
+
+// State Event Definitions
+typedef void (*node_enter_event)(node_event_data);
+typedef bool (*node_before_enter_event)(node_event_data);
+typedef bool (*node_before_exit_event)(node_event_data);
+
+typedef bool (*edge_event)(edge_event_data);
 
 #define DEFAULT_ROOT_NODE_ID 0
 
@@ -32,15 +45,17 @@ private:
     node_enter_event _onEnter;
     node_before_enter_event _beforeEnter;
     node_before_exit_event _beforeExit;
+    long _data;
+    void *_extData;
 public:
-    Node(node_id_t id, std::string name, node_enter_event onEnter = nullptr, node_before_enter_event beforeEnter = nullptr, node_before_exit_event beforeExit = nullptr): _id(id), _name(name), _onEnter(onEnter), _beforeEnter(beforeEnter), _beforeExit(beforeEnter) {}
+    Node(node_id_t id, std::string name, node_enter_event onEnter = nullptr, node_before_enter_event beforeEnter = nullptr, node_before_exit_event beforeExit = nullptr, long data = 0, void *extData = nullptr): _id(id), _name(name), _onEnter(onEnter), _beforeEnter(beforeEnter), _beforeExit(beforeEnter), _data(data), _extData(extData) {}
 
     node_id_t getId() { return _id; }
     std::string getName() { return _name; }
 
-    bool beforeEnter(node_id_t fromNode) { if (_beforeEnter) return beforeEnter(fromNode); return true; }
-    void onEnter() { if (_onEnter) _onEnter(this); }
-    bool beforeExit(node_id_t toNode) { if (_beforeExit) return _beforeExit(toNode); return true; }
+    bool beforeEnter(node_id_t fromNode) { if (_beforeEnter) return _beforeEnter({ .node =  this, .nodeId = fromNode, .data = this->_data, .extData = _extData }); return true; }
+    void onEnter() { if (_onEnter) _onEnter({ .node =  this, .nodeId = this->_id, .data = this->_data, .extData = _extData }); }
+    bool beforeExit(node_id_t toNode) { if (_beforeExit) return _beforeExit({ .node =  this, .nodeId = toNode, .data = this->_data, .extData = _extData }); return true; }
 };
 
 class Edge {
@@ -49,13 +64,15 @@ class Edge {
 private:
     std::pair<node_id_t, node_id_t> _fromToTuple;
     edge_event _onTransition;
+    long _data;
+    void *_extData;
 public:
-    Edge(node_id_t startId, node_id_t endId, edge_event onTransition = nullptr): _fromToTuple(std::make_pair(startId, endId)), _onTransition(onTransition) { }
+    Edge(node_id_t startId, node_id_t endId, edge_event onTransition = nullptr, long data = 0, void *extData = nullptr): _fromToTuple(std::make_pair(startId, endId)), _onTransition(onTransition), _data(data), _extData(extData) { }
 
     node_id_t getFromNodeId() { return _fromToTuple.first; }
     node_id_t getToNodeId() { return _fromToTuple.second; }
 
-    bool onTransition() { if (_onTransition) { return _onTransition(this); } return true; }
+    bool onTransition() { if (_onTransition) { return _onTransition({ .edge = this, .data = _data, .extData = _extData }); } return true; }
 };
 
 class StateManager {

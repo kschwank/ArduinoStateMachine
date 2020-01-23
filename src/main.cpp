@@ -13,8 +13,8 @@ void restartEsp() {
     ESP.restart();
 }
 
-bool printTransition(Edge *edge) {
-    Serial.printf("transitioning from %i to %i\n", edge->getFromNodeId(), edge->getToNodeId());
+bool printTransition(edge_event_data eventData) {
+    Serial.printf("transitioning from %i to %i\n", eventData.edge->getFromNodeId(), eventData.edge->getToNodeId());
     return true;
 }
 
