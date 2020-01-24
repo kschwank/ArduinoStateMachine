@@ -62,13 +62,18 @@ class Edge {
     friend StateManager;
 
 private:
+    std::string _name;
+    std::string _description;
     std::pair<node_id_t, node_id_t> _fromToTuple;
     edge_event _onTransition;
     long _data;
     void *_extData;
 public:
-    Edge(node_id_t startId, node_id_t endId, edge_event onTransition = nullptr, long data = 0, void *extData = nullptr): _fromToTuple(std::make_pair(startId, endId)), _onTransition(onTransition), _data(data), _extData(extData) { }
+    Edge(std::string name, std::string description, node_id_t startId, node_id_t endId, edge_event onTransition = nullptr, long data = 0, void *extData = nullptr)
+    : _name(name), _description(description), _fromToTuple(std::make_pair(startId, endId)), _onTransition(onTransition), _data(data), _extData(extData) { }
 
+    std::string getName() { return _name; }
+    std::string getDescription() { return _description; }
     node_id_t getFromNodeId() { return _fromToTuple.first; }
     node_id_t getToNodeId() { return _fromToTuple.second; }
 
@@ -76,18 +81,17 @@ public:
 };
 
 class StateManager {
-private:
+protected:
     Node *_start;
     Node *_active;
     std::map<node_id_t, Node*> _nodes;
     std::map<node_id_t, std::vector<Edge*>> _edges;
 public:
     explicit StateManager(Node *startNode = nullptr): _start(startNode) {
-        if (!startNode) {
-            startNode = new Node(DEFAULT_ROOT_NODE_ID, "");
-            _start = startNode;
+        if (!_start) {
+            _start = new Node(DEFAULT_ROOT_NODE_ID, "");
         }
-        _nodes = { {startNode->_id, startNode } };
+        _nodes = { { _start->_id, _start } };
         _edges = { };
         _active = _start;
     }
@@ -139,7 +143,7 @@ public:
     }
 
     Node *getActiveNode() {
-        Log.trace("active node is %i", (void*)_active);
+        Log.trace("active node is '%s'\n", _active->getName().c_str());
         return _active;
     }
 
@@ -154,7 +158,7 @@ public:
     }
 
     void addEdge(Edge *newEdge) {
-        Log.trace("adding edge [%i->%i]\n", newEdge->getFromNodeId(), newEdge->getToNodeId());
+        Log.trace("adding edge %s (%s) [%i->%i]\n", newEdge->getName().c_str(), newEdge->getDescription().c_str(), newEdge->getFromNodeId(), newEdge->getToNodeId());
         _edges[newEdge->getFromNodeId()].push_back(newEdge);
     }
 
@@ -163,6 +167,31 @@ public:
 
         Log.trace("getting available transition for node [%i]\n", node->_id);
         return &_edges[node->_id];
+    }
+
+    Edge *findEdgeByName(std::string name, std::vector<Edge*> *transitions) {
+        Log.trace("searching for edge by name '%s'\n", name.c_str());
+        transitions->begin();
+        for (auto edge : *transitions) {
+            if (name == edge->getName()) {
+                return edge;
+            }
+        }
+        return nullptr;
+    }
+
+    void dump() {
+        _nodes.begin();
+        for (auto node : _nodes) {
+            Log.trace("node: { id: %i, name: %s }\n", node.second->getId(), node.second->getName().c_str());
+        }
+
+        _edges.begin();
+        for (auto const &edgeentry : _edges) {
+            for (auto edge : edgeentry.second) {
+                Log.trace("edge %s (%s) [%i->%i]\n", edge->getName().c_str(), edge->getDescription().c_str(), edge->getFromNodeId(), edge->getToNodeId());
+            }
+        }
     }
 };
 

@@ -7,69 +7,50 @@
 
 #include "system_state_machine.h"
 
-typedef void (*onEnterMenuItem)();
-
-class MenuItem: public Node {
-public:
-    MenuItem(node_id_t id, std::string name, node_enter_event onEnter = nullptr, node_before_enter_event beforeEnter = nullptr, node_before_exit_event beforeExit = nullptr, long data = 0, void *extData = nullptr)
-    : Node(id, name, onEnter, beforeEnter, beforeExit, data, extData) { }
-};
-
-class MenuItemLink: public Edge {
-    std::string _entryName;
-    std::string _entryDescription;
-
-public:
-    MenuItemLink(Edge *edge) : Edge(edge->getFromNodeId(), edge->getToNodeId()) {
-        _entryName = "Item: " + getToNodeId();
-        _entryDescription = ""; // std::string("Link from ", getFromNodeId(), " to " + getToNodeId());
-    }
-    MenuItemLink(std::string entryName, std::string entryDescription, node_id_t startId, node_id_t endId, edge_event onTransition = nullptr, long data = 0, void* extData = nullptr)
-    : Edge(startId, endId, onTransition, data, extData), _entryName(entryName), _entryDescription(entryDescription) { }
-
-    std::string getEntryName() {
-        return _entryName;
-    }
-
-    std::string getEntryDescription() {
-        return _entryDescription;
-    }
-};
-
 class MenuStateManager : public StateManager {
-
-private:
-    MenuItemLink *findItemLinkByKey(std::string entryName, std::vector<Edge*> *transitions) {
-        transitions->begin();
-        for (auto edge : *transitions) {
-            MenuItemLink *itemLink = static_cast<MenuItemLink*>(edge);
-            if (entryName.compare(itemLink->getEntryName()) == 0) {
-                return itemLink;
-            }
-        }
-        return nullptr;
-    }
+    std::string _inputBuffer;
 public:
-    MenuStateManager(MenuItem *rootMenuItem = nullptr): StateManager(rootMenuItem ? rootMenuItem : new MenuItem(DEFAULT_ROOT_NODE_ID, "/")) { }
+    MenuStateManager(Node *rootNode = nullptr): StateManager(rootNode) { }// (rootMenuItem ? rootMenuItem : new MenuItem(DEFAULT_ROOT_NODE_ID, "/")) { }
 
     bool handleCommand(std::string cmd) {
-        MenuItemLink *menuItemLink = findItemLinkByKey(cmd, getPossibleTransitions());
-        if (menuItemLink) {
-            return transition(menuItemLink);
+        Log.trace("Handling command '%s'\n", cmd.c_str());
+        Edge *edge = findEdgeByName(cmd, getPossibleTransitions());
+
+        if (edge) {
+            Log.trace("found matching edge %s [%i->%i]\n", edge->getName().c_str(), edge->getFromNodeId(), edge->getToNodeId());
+        } else {
+            Log.trace("found no matching edge for command '%s'\n", cmd.c_str());
         }
-        return false;
+        return edge? transition(edge) : false;
     }
 
-    virtual std::string getMenuString() {
+    std::string getMenuString() {
         std::string menuString = "Menu: '" + getActiveNode()->getName() + "':\n";
 
         auto transitions = getPossibleTransitions();
         for (auto edge : *transitions) {
-            MenuItemLink *itemLink = static_cast<MenuItemLink*>(edge);
-            menuString += itemLink->getEntryName() + ": " + itemLink->getEntryDescription() + "\n";
+            menuString += edge->getName() + ": " + edge->getDescription() + "\n";
         }
 
         return menuString;
+    }
+
+    void handleInput(char input_char) {
+        if (input_char == 10) return; // skip CR
+        Log.verbose("c: %c [%i]\n", input_char, input_char);
+
+        if (input_char == 13) { // evaluate on LF
+            Log.trace("evaluating input '%s'\n", _inputBuffer.c_str());
+            if (!(this->handleCommand(_inputBuffer))) {
+                Log.warning("Invalid command or command failed: %s\n", _inputBuffer.c_str());
+            }
+            _inputBuffer.clear();
+            Serial.println(this->getMenuString().c_str());
+            return;
+        } else {
+            _inputBuffer += input_char;
+            Log.verbose("serial_menu_cmd: '%s'\n", _inputBuffer.c_str());
+        }
     }
 };
 
