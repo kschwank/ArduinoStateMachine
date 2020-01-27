@@ -25,8 +25,7 @@ public:
     }
 
     std::string getMenuString() {
-        std::string menuString = "Menu: '" + getActiveNode()->getName() + "':\n";
-
+        std::string menuString;
         auto transitions = getPossibleTransitions();
         for (auto edge : *transitions) {
             menuString += edge->getName() + ": " + edge->getDescription() + "\n";
@@ -39,13 +38,20 @@ public:
         if (input_char == 10) return; // skip CR
         Log.verbose("c: %c [%i]\n", input_char, input_char);
 
+
         if (input_char == 13) { // evaluate on LF
             Log.trace("evaluating input '%s'\n", _inputBuffer.c_str());
-            if (!(this->handleCommand(_inputBuffer))) {
+            if (_inputBuffer.empty()) {
+                return;
+            }
+            if (_inputBuffer == "/") {
+                restart(true);
+            } else if (!(this->handleCommand(_inputBuffer))) {
                 Log.warning("Invalid command or command failed: %s\n", _inputBuffer.c_str());
             }
             _inputBuffer.clear();
             Serial.println(this->getMenuString().c_str());
+            Serial.print((this->getActiveNode()->getName() + "/ >").c_str());
             return;
         } else {
             _inputBuffer += input_char;
