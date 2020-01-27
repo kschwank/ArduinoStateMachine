@@ -41,12 +41,9 @@ public:
 
         if (input_char == 13) { // evaluate on LF
             Log.trace("evaluating input '%s'\n", _inputBuffer.c_str());
-            if (_inputBuffer.empty()) {
-                return;
-            }
             if (_inputBuffer == "/") {
                 restart(true);
-            } else if (!(this->handleCommand(_inputBuffer))) {
+            } else if (!(_inputBuffer.empty()) && !(this->handleCommand(_inputBuffer))) {
                 Log.warning("Invalid command or command failed: %s\n", _inputBuffer.c_str());
             }
             _inputBuffer.clear();
