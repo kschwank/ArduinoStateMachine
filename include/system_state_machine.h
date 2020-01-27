@@ -97,6 +97,8 @@ public:
     }
 
     void restart(bool runOnEnter = true) {
+        _active->beforeExit(DEFAULT_ROOT_NODE_ID);
+
         _active = _start;
         if (runOnEnter) {
             _active->onEnter();
