@@ -48,7 +48,7 @@ private:
     long _data;
     void *_extData;
 public:
-    Node(node_id_t id, std::string name, node_enter_event onEnter = nullptr, node_before_enter_event beforeEnter = nullptr, node_before_exit_event beforeExit = nullptr, long data = 0, void *extData = nullptr): _id(id), _name(name), _onEnter(onEnter), _beforeEnter(beforeEnter), _beforeExit(beforeEnter), _data(data), _extData(extData) {}
+    Node(node_id_t id, std::string name, node_enter_event onEnter = nullptr, node_before_enter_event beforeEnter = nullptr, node_before_exit_event beforeExit = nullptr, long data = 0, void *extData = nullptr): _id(id), _name(name), _onEnter(onEnter), _beforeEnter(beforeEnter), _beforeExit(beforeExit), _data(data), _extData(extData) {}
 
     node_id_t getId() { return _id; }
     std::string getName() { return _name; }
