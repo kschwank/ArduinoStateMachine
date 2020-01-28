@@ -30,6 +30,10 @@ private:
 
         return result;
     }
+    static std::string fillString(const std::string& s, int length, char c) {
+        std::string chars(length, c);
+        return s + chars.substr(0, length - s.size());
+    }
 public:
     MenuStateManager(Node *rootNode = nullptr): StateManager(rootNode) { }// (rootMenuItem ? rootMenuItem : new MenuItem(DEFAULT_ROOT_NODE_ID, "/")) { }
 
@@ -52,10 +56,10 @@ public:
     }
 
     std::string getMenuString() {
-        std::string menuString;
+        std::string menuString = "** " + _active->getName() + " **\n";
         auto transitions = getPossibleTransitions();
         for (auto edge : *transitions) {
-            menuString += edge->getName() + ": " + edge->getDescription() + "\n";
+            menuString += fillString("*" + edge->getName() + ": ", 15, ' ') + edge->getDescription() + "\n";
         }
 
         return menuString;
