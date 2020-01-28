@@ -36,7 +36,7 @@ public:
     bool handleCommand(std::string cmd) {
         Log.trace("Handling command '%s'\n", cmd.c_str());
         std::vector<std::string> *cmdline = splitInput(_inputBuffer, ' ');
-        Log.verbose("Command line consists of %i elements.", cmdline->size());
+        Log.verbose("Command line consists of %i elements\n", cmdline->size());
 
         cmd = cmdline->front();
         Edge *edge = findEdgeByName(cmd, getPossibleTransitions());
