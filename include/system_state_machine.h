@@ -19,6 +19,7 @@ typedef struct {
     node_id_t nodeId;
     long data;
     void* extData;
+    std::vector<std::string> *args;
 } node_event_data;
 
 typedef struct {
@@ -55,7 +56,7 @@ public:
     std::string getName() { return _name; }
 
     bool beforeEnter(node_id_t fromNode) { if (_beforeEnter) return _beforeEnter({ .node =  this, .nodeId = fromNode, .data = this->_data, .extData = _extData }); return true; }
-    void onEnter() { if (_onEnter) _onEnter({ .node =  this, .nodeId = this->_id, .data = this->_data, .extData = _extData }); }
+    void onEnter(std::vector<std::string> *args = nullptr) { if (_onEnter) _onEnter({ .node =  this, .nodeId = this->_id, .data = this->_data, .extData = _extData, .args = args }); }
     bool beforeExit(node_id_t toNode) { if (_beforeExit) return _beforeExit({ .node =  this, .nodeId = toNode, .data = this->_data, .extData = _extData }); return true; }
 };
 
@@ -78,7 +79,7 @@ public:
     node_id_t getFromNodeId() { return _fromToTuple.first; }
     node_id_t getToNodeId() { return _fromToTuple.second; }
 
-    bool onTransition(std::vector<std::string> *args) { if (_onTransition) { return _onTransition({ .edge = this, .data = _data, .extData = _extData, .args = args }); } return true; }
+    bool onTransition(std::vector<std::string> *args = nullptr) { if (_onTransition) { return _onTransition({ .edge = this, .data = _data, .extData = _extData, .args = args }); } return true; }
 };
 
 class StateManager {
@@ -111,7 +112,7 @@ public:
     }
 
     bool transition(Edge *edge, std::vector<std::string> *args = nullptr) {
-        if (_active->_id == edge->getFromNodeId()) {
+        if (edge && (_active->_id == edge->getFromNodeId())) {
             Log.trace("looking for target node [id:%i]\n", edge->getToNodeId());
             Node *toNode = _nodes.at(edge->getToNodeId());
             if (!toNode) {
@@ -137,7 +138,10 @@ public:
             Log.trace("activating node [%i]\n", edge->getToNodeId());
             _active = toNode;
             Log.trace("calling onEnter() on node [%i]\n", _active->_id);
-            _active->onEnter();
+            _active->onEnter(args);
+        } else if (!edge) {
+            Log.trace("no edge passed, executing onEnter of current node [%i]\n", _active->_id);
+            _active->onEnter(args);
         } else {
             Log.trace("edge does not start from node [%i]\n", _active->_id);
             return false;

@@ -18,12 +18,18 @@ bool print_params(edge_event_data eventData) {
     return true;
 }
 
+void enter_node(node_event_data eventData) {
+    for (auto arg : *eventData.args) {
+        Serial.println(arg.c_str());
+    }
+}
+
 void setupMenu(MenuStateManager *menuStateManager) {
     menuStateManager->addNode(new Node(1, "Status"));
     menuStateManager->addNode(new Node(2, "Sensor Configuration"));
     menuStateManager->addNode(new Node(3, "System Configuration"));
 
-    menuStateManager->addNode(new Node(31, "Log Level"));
+    menuStateManager->addNode(new Node(31, "Log Level", enter_node));
 
     menuStateManager->addEdge(new Edge("test", "test", DEFAULT_ROOT_NODE_ID, DEFAULT_ROOT_NODE_ID, print_params));
 

@@ -46,8 +46,7 @@ public:
         } else {
             Log.trace("found no matching edge for command '%s'\n", cmd.c_str());
         }
-        cmdline->erase(cmdline->begin());
-        bool result = edge? transition(edge, cmdline) : false;
+        bool result = transition(edge, cmdline);
         delete cmdline;
         return result;
     }
@@ -71,7 +70,7 @@ public:
             Log.trace("evaluating input '%s'\n", _inputBuffer.c_str());
             if (_inputBuffer == "/") {
                 restart(true);
-            } else if (!(_inputBuffer.empty()) && !(this->handleCommand(_inputBuffer))) {
+            } else if (!(this->handleCommand(_inputBuffer))) {
                 Log.warning("Invalid command or command failed: %s\n", _inputBuffer.c_str());
             }
             _inputBuffer.clear();
