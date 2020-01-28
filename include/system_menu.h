@@ -9,11 +9,36 @@
 
 class MenuStateManager : public StateManager {
     std::string _inputBuffer;
+private:
+    static std::vector<std::string> *splitInput(std::string input, char delim) {
+        Log.trace("splitting input: '%s' with delimiter '%c'\n", input.c_str(), delim);
+        auto *result = new std::vector<std::string>(0);
+        Log.verbose("created initial result vector %i\n", result);
+
+        std::string substr;
+        for (auto it = input.begin(); it != input.end(); it++) {
+            if (*it == delim) {
+                Log.trace("extracted substr: '%s'\n", substr.c_str());
+                result->push_back(substr);
+                substr.clear();
+            } else {
+                substr += *it;
+            }
+        }
+        Log.trace("extracted substr: '%s'\n", substr.c_str());
+        result->push_back(substr);
+
+        return result;
+    }
 public:
     MenuStateManager(Node *rootNode = nullptr): StateManager(rootNode) { }// (rootMenuItem ? rootMenuItem : new MenuItem(DEFAULT_ROOT_NODE_ID, "/")) { }
 
     bool handleCommand(std::string cmd) {
         Log.trace("Handling command '%s'\n", cmd.c_str());
+        std::vector<std::string> *cmdline = splitInput(_inputBuffer, ' ');
+        Log.verbose("Command line consists of %i elements.", cmdline->size());
+
+        cmd = cmdline->front();
         Edge *edge = findEdgeByName(cmd, getPossibleTransitions());
 
         if (edge) {
@@ -21,7 +46,10 @@ public:
         } else {
             Log.trace("found no matching edge for command '%s'\n", cmd.c_str());
         }
-        return edge? transition(edge) : false;
+        cmdline->erase(cmdline->begin());
+        bool result = edge? transition(edge, cmdline) : false;
+        delete cmdline;
+        return result;
     }
 
     std::string getMenuString() {

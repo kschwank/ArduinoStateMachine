@@ -25,6 +25,7 @@ typedef struct {
     Edge* edge;
     long data;
     void *extData;
+    std::vector<std::string> *args;
 } edge_event_data;
 
 // State Event Definitions
@@ -77,7 +78,7 @@ public:
     node_id_t getFromNodeId() { return _fromToTuple.first; }
     node_id_t getToNodeId() { return _fromToTuple.second; }
 
-    bool onTransition() { if (_onTransition) { return _onTransition({ .edge = this, .data = _data, .extData = _extData }); } return true; }
+    bool onTransition(std::vector<std::string> *args) { if (_onTransition) { return _onTransition({ .edge = this, .data = _data, .extData = _extData, .args = args }); } return true; }
 };
 
 class StateManager {
@@ -109,7 +110,7 @@ public:
         _active = startNode;
     }
 
-    bool transition(Edge *edge) {
+    bool transition(Edge *edge, std::vector<std::string> *args = nullptr) {
         if (_active->_id == edge->getFromNodeId()) {
             Log.trace("looking for target node [id:%i]\n", edge->getToNodeId());
             Node *toNode = _nodes.at(edge->getToNodeId());
@@ -124,7 +125,7 @@ public:
                 return false;
             }
             Log.trace("calling onTransition() on edge [%i->%i]\n", edge->getFromNodeId(), edge->getToNodeId());
-            if (!edge->onTransition()) {
+            if (!edge->onTransition(args)) {
                 Log.trace("onTransition() returned false. Aborting transition.");
                 return false;
             }

@@ -11,12 +11,21 @@ bool set_log_level(edge_event_data eventData) {
     return true;
 }
 
+bool print_params(edge_event_data eventData) {
+    for (auto arg : *eventData.args) {
+        Serial.println(arg.c_str());
+    }
+    return true;
+}
+
 void setupMenu(MenuStateManager *menuStateManager) {
     menuStateManager->addNode(new Node(1, "Status"));
     menuStateManager->addNode(new Node(2, "Sensor Configuration"));
     menuStateManager->addNode(new Node(3, "System Configuration"));
 
     menuStateManager->addNode(new Node(31, "Log Level"));
+
+    menuStateManager->addEdge(new Edge("test", "test", DEFAULT_ROOT_NODE_ID, DEFAULT_ROOT_NODE_ID, print_params));
 
     // main menu
     menuStateManager->addEdge(new Edge("status", "Show status information", DEFAULT_ROOT_NODE_ID, 1));
@@ -44,7 +53,6 @@ void setupMenu(MenuStateManager *menuStateManager) {
     menuStateManager->addEdge(new Edge("5", "TRACE", 31, 31, set_log_level, LOG_LEVEL_TRACE));
     menuStateManager->addEdge(new Edge("6", "VERBOSE", 31, 31, set_log_level, LOG_LEVEL_VERBOSE));
     menuStateManager->addEdge(new Edge("..", "Back to System Configuration", 31, 3));
-
 }
 
 void setupMenu1(MenuStateManager *menuStateManager) {
