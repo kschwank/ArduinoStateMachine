@@ -9,6 +9,7 @@
 
 class MenuStateManager : public StateManager {
     std::string _inputBuffer;
+    std::vector<Node*> _path;
 private:
     static std::vector<std::string> *splitInput(std::string input, char delim) {
         Log.trace("splitting input: '%s' with delimiter '%c'\n", input.c_str(), delim);
@@ -16,13 +17,13 @@ private:
         Log.verbose("created initial result vector %i\n", result);
 
         std::string substr;
-        for (auto it = input.begin(); it != input.end(); it++) {
-            if (*it == delim) {
+        for (char & it : input) {
+            if (it == delim) {
                 Log.trace("extracted substr: '%s'\n", substr.c_str());
                 result->push_back(substr);
                 substr.clear();
             } else {
-                substr += *it;
+                substr += it;
             }
         }
         Log.trace("extracted substr: '%s'\n", substr.c_str());
@@ -35,7 +36,7 @@ private:
         return s + chars.substr(0, length - s.size());
     }
 public:
-    MenuStateManager(Node *rootNode = nullptr): StateManager(rootNode) { }// (rootMenuItem ? rootMenuItem : new MenuItem(DEFAULT_ROOT_NODE_ID, "/")) { }
+    explicit MenuStateManager(Node *rootNode = nullptr): StateManager(rootNode) { }// (rootMenuItem ? rootMenuItem : new MenuItem(DEFAULT_ROOT_NODE_ID, "/")) { }
 
     bool handleCommand(std::string cmd) {
         Log.trace("Handling command '%s'\n", cmd.c_str());
@@ -58,6 +59,8 @@ public:
     std::string getMenuString() {
         std::string menuString = "\n** " + _active->getName() + " **\n";
         auto transitions = getPossibleTransitions();
+        menuString += "* .\n";
+        if (_active != _start) menuString += "* ..\n";
         for (auto edge : *transitions) {
             menuString += fillString("* " + edge->getName() + ": ", 15, ' ') + edge->getDescription() + "\n";
         }
@@ -65,21 +68,33 @@ public:
         return menuString;
     }
 
+    static std::string getPathString(const std::vector<Node*>& path) {
+        std::string result("/");
+        for (auto node : path) {
+            result += node->getName();
+        }
+        return result;
+    }
+
     void handleInput(char input_char) {
         if (input_char == 10) return; // skip CR
         Log.verbose("c: %c [%i]\n", input_char, input_char);
-
 
         if (input_char == 13) { // evaluate on LF
             Log.trace("evaluating input '%s'\n", _inputBuffer.c_str());
             if (_inputBuffer == "/") {
                 restart(true);
+            } else if ((_inputBuffer == "..") && (_path.size() > 1)) {
+                _path.pop_back();
+                _active = *_path.end();
             } else if (!(this->handleCommand(_inputBuffer))) {
                 Log.warning("Invalid command or command failed: %s\n", _inputBuffer.c_str());
+            } else if (_active != *_path.end()) {
+                _path.push_back(_active);
             }
             _inputBuffer.clear();
             Serial.println(this->getMenuString().c_str());
-            Serial.print((this->getActiveNode()->getName() + "/ > ").c_str());
+            Serial.print((getPathString(_path) + "> ").c_str());
             return;
         } else {
             _inputBuffer += input_char;

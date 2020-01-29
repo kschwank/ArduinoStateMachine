@@ -3,6 +3,7 @@
 
 #include <string>
 #include <map>
+#include <utility>
 #include <vector>
 
 #include "ArduinoLog.h"
@@ -50,7 +51,7 @@ private:
     long _data;
     void *_extData;
 public:
-    Node(node_id_t id, std::string name, node_enter_event onEnter = nullptr, node_before_enter_event beforeEnter = nullptr, node_before_exit_event beforeExit = nullptr, long data = 0, void *extData = nullptr): _id(id), _name(name), _onEnter(onEnter), _beforeEnter(beforeEnter), _beforeExit(beforeExit), _data(data), _extData(extData) {}
+    Node(node_id_t id, std::string name, node_enter_event onEnter = nullptr, node_before_enter_event beforeEnter = nullptr, node_before_exit_event beforeExit = nullptr, long data = 0, void *extData = nullptr): _id(id), _name(std::move(name)), _onEnter(onEnter), _beforeEnter(beforeEnter), _beforeExit(beforeExit), _data(data), _extData(extData) {}
 
     node_id_t getId() { return _id; }
     std::string getName() { return _name; }
@@ -72,7 +73,7 @@ private:
     void *_extData;
 public:
     Edge(std::string name, std::string description, node_id_t startId, node_id_t endId, edge_event onTransition = nullptr, long data = 0, void *extData = nullptr)
-    : _name(name), _description(description), _fromToTuple(std::make_pair(startId, endId)), _onTransition(onTransition), _data(data), _extData(extData) { }
+    : _name(std::move(name)), _description(std::move(description)), _fromToTuple(std::make_pair(startId, endId)), _onTransition(onTransition), _data(data), _extData(extData) { }
 
     std::string getName() { return _name; }
     std::string getDescription() { return _description; }
@@ -105,10 +106,6 @@ public:
         if (runOnEnter) {
             _active->onEnter();
         }
-    }
-
-    void setStartNode(Node *startNode) {
-        _active = startNode;
     }
 
     bool transition(Edge *edge, std::vector<std::string> *args = nullptr) {
@@ -176,7 +173,7 @@ public:
         return &_edges[node->_id];
     }
 
-    Edge *findEdgeByName(std::string name, std::vector<Edge*> *transitions) {
+    static Edge *findEdgeByName(const std::string& name, std::vector<Edge*> *transitions) {
         Log.trace("searching for edge by name '%s'\n", name.c_str());
         transitions->begin();
         for (auto edge : *transitions) {
