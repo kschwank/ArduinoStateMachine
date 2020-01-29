@@ -54,6 +54,9 @@ public:
             Log.trace("found no matching edge for command '%s'\n", cmd.c_str());
         }
         bool result = transition(edge, cmdline);
+        if (_active != *_path.end()) {
+            _path.push_back(_active);
+        }
         delete cmdline;
         return result;
     }
@@ -91,8 +94,6 @@ public:
                 _active = *_path.end();
             } else if (!(this->handleCommand(_inputBuffer))) {
                 Log.warning("Invalid command or command failed: %s\n", _inputBuffer.c_str());
-            } else if (_active != *_path.end()) {
-                _path.push_back(_active);
             }
             _inputBuffer.clear();
             Serial.println(this->getMenuString().c_str());
