@@ -56,7 +56,7 @@ public:
     }
 
     std::string getMenuString() {
-        std::string menuString = "** " + _active->getName() + " **\n";
+        std::string menuString = "\n** " + _active->getName() + " **\n";
         auto transitions = getPossibleTransitions();
         for (auto edge : *transitions) {
             menuString += fillString("* " + edge->getName() + ": ", 15, ' ') + edge->getDescription() + "\n";
