@@ -36,7 +36,9 @@ private:
         return s + chars.substr(0, length - s.size());
     }
 public:
-    explicit MenuStateManager(Node *rootNode = nullptr): StateManager(rootNode) { }// (rootMenuItem ? rootMenuItem : new MenuItem(DEFAULT_ROOT_NODE_ID, "/")) { }
+    explicit MenuStateManager(Node *rootNode = nullptr): StateManager(rootNode) {
+        _path.push_back(_active);
+    }
 
     bool handleCommand(std::string cmd) {
         Log.trace("Handling command '%s'\n", cmd.c_str());
@@ -69,9 +71,9 @@ public:
     }
 
     static std::string getPathString(const std::vector<Node*>& path) {
-        std::string result("/");
+        std::string result;
         for (auto node : path) {
-            result += node->getName();
+            result += node->getName() + "/";
         }
         return result;
     }
