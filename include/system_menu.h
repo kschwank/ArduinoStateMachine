@@ -53,8 +53,9 @@ public:
         } else {
             Log.trace("found no matching edge for command '%s'\n", cmd.c_str());
         }
+        Node *previous = _active;
         bool result = transition(edge, cmdline);
-        if (_active != *_path.end()) {
+        if (result && (_active != previous)) {
             _path.push_back(_active);
         }
         delete cmdline;
@@ -91,7 +92,7 @@ public:
                 restart(true);
             } else if ((_inputBuffer == "..") && (_path.size() > 1)) {
                 _path.pop_back();
-                _active = *_path.end();
+                _active = _path.back();
             } else if (!(this->handleCommand(_inputBuffer))) {
                 Log.warning("Invalid command or command failed: %s\n", _inputBuffer.c_str());
             }
