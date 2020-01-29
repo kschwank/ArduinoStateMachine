@@ -59,7 +59,7 @@ public:
         std::string menuString = "** " + _active->getName() + " **\n";
         auto transitions = getPossibleTransitions();
         for (auto edge : *transitions) {
-            menuString += fillString("*" + edge->getName() + ": ", 15, ' ') + edge->getDescription() + "\n";
+            menuString += fillString("* " + edge->getName() + ": ", 15, ' ') + edge->getDescription() + "\n";
         }
 
         return menuString;
@@ -79,7 +79,7 @@ public:
             }
             _inputBuffer.clear();
             Serial.println(this->getMenuString().c_str());
-            Serial.print((this->getActiveNode()->getName() + "/ >").c_str());
+            Serial.print((this->getActiveNode()->getName() + "/ > ").c_str());
             return;
         } else {
             _inputBuffer += input_char;
