@@ -39,7 +39,6 @@ private:
     }
 public:
     explicit MenuStateManager(Node *rootNode = nullptr, Logging *logger = &Log): StateManager(rootNode, logger) {
-        SLog = logger;
         _path.push_back(_active);
     }
 
