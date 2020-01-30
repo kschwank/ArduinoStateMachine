@@ -25,7 +25,7 @@ void setup() {
     delay(10000);
 
     Serial.println("creating root node");
-    stateManager = new MenuStateManager();
+    stateManager = new MenuStateManager(nullptr, &Log);
 
     stateManager->addNode(new Node(1, "01"));
     stateManager->addNode(new Node(2, "02"));

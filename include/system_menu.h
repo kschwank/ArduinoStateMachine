@@ -2,8 +2,10 @@
 // Created by ksh on 21.01.20.
 //
 
-#ifndef STATEMACHINE_SYSTEM_MENU_H
-#define STATEMACHINE_SYSTEM_MENU_H
+#ifndef STATEMACHINE_SYSTEM_STATE_MACHINE_H
+#define STATEMACHINE_SYSTEM_STATE_MACHINE_H
+
+#include <ArduinoLog.h>
 
 #include "system_state_machine.h"
 
@@ -11,22 +13,22 @@ class MenuStateManager : public StateManager {
     std::string _inputBuffer;
     std::vector<Node*> _path;
 private:
-    static std::vector<std::string> *splitInput(std::string input, char delim) {
-        Log.trace("splitting input: '%s' with delimiter '%c'\n", input.c_str(), delim);
+    static std::vector<std::string> *splitInput(const std::string& input, char delim) {
+        SLog->trace("splitting input: '%s' with delimiter '%c'\n", input.c_str(), delim);
         auto *result = new std::vector<std::string>(0);
-        Log.verbose("created initial result vector %i\n", result);
+        SLog->verbose("created initial result vector %i\n", result);
 
         std::string substr;
-        for (char & it : input) {
-            if (it == delim) {
-                Log.trace("extracted substr: '%s'\n", substr.c_str());
+        for (char c : input) {
+            if (c == delim) {
+                SLog->trace("extracted substr: '%s'\n", substr.c_str());
                 result->push_back(substr);
                 substr.clear();
             } else {
-                substr += it;
+                substr += c;
             }
         }
-        Log.trace("extracted substr: '%s'\n", substr.c_str());
+        SLog->trace("extracted substr: '%s'\n", substr.c_str());
         result->push_back(substr);
 
         return result;
@@ -36,22 +38,23 @@ private:
         return s + chars.substr(0, length - s.size());
     }
 public:
-    explicit MenuStateManager(Node *rootNode = nullptr): StateManager(rootNode) {
+    explicit MenuStateManager(Node *rootNode = nullptr, Logging *logger = &Log): StateManager(rootNode, logger) {
+        SLog = logger;
         _path.push_back(_active);
     }
 
     bool handleCommand(std::string cmd) {
-        Log.trace("Handling command '%s'\n", cmd.c_str());
+        _logger->trace("Handling command '%s'\n", cmd.c_str());
         std::vector<std::string> *cmdline = splitInput(_inputBuffer, ' ');
-        Log.verbose("Command line consists of %i elements\n", cmdline->size());
+        _logger->verbose("Command line consists of %i elements\n", cmdline->size());
 
         cmd = cmdline->front();
         Edge *edge = findEdgeByName(cmd, getPossibleTransitions());
 
         if (edge) {
-            Log.trace("found matching edge %s [%i->%i]\n", edge->getName().c_str(), edge->getFromNodeId(), edge->getToNodeId());
+            _logger->trace("found matching edge %s [%i->%i]\n", edge->getName().c_str(), edge->getFromNodeId(), edge->getToNodeId());
         } else {
-            Log.trace("found no matching edge for command '%s'\n", cmd.c_str());
+            _logger->trace("found no matching edge for command '%s'\n", cmd.c_str());
         }
         Node *previous = _active;
         bool result = transition(edge, cmdline);
@@ -84,17 +87,19 @@ public:
 
     void handleInput(char input_char) {
         if (input_char == 10) return; // skip CR
-        Log.verbose("c: %c [%i]\n", input_char, input_char);
+        _logger->verbose("c: %c [%i]\n", input_char, input_char);
 
         if (input_char == 13) { // evaluate on LF
-            Log.trace("evaluating input '%s'\n", _inputBuffer.c_str());
+            _logger->trace("evaluating input '%s'\n", _inputBuffer.c_str());
             if (_inputBuffer == "/") {
                 restart(true);
+                _path.clear();
+                _path.push_back(_active);
             } else if ((_inputBuffer == "..") && (_path.size() > 1)) {
                 _path.pop_back();
                 _active = _path.back();
             } else if (!(this->handleCommand(_inputBuffer))) {
-                Log.warning("Invalid command or command failed: %s\n", _inputBuffer.c_str());
+                _logger->warning("Invalid command or command failed: %s\n", _inputBuffer.c_str());
             }
             _inputBuffer.clear();
             Serial.println(this->getMenuString().c_str());
@@ -102,9 +107,9 @@ public:
             return;
         } else {
             _inputBuffer += input_char;
-            Log.verbose("serial_menu_cmd: '%s'\n", _inputBuffer.c_str());
+            _logger->verbose("serial_menu_cmd: '%s'\n", _inputBuffer.c_str());
         }
     }
 };
 
-#endif //STATEMACHINE_SYSTEM_MENU_H
+#endif //STATEMACHINE_SYSTEM_STATE_MACHINE_H
