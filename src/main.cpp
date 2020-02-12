@@ -20,7 +20,7 @@ bool printTransition(edge_event_data eventData) {
 
 void setup() {
     Serial.begin(115200);
-    Log.begin(LOG_LEVEL_VERBOSE, &Serial, true);
+    Log.begin(LOG_LEVEL_TRACE, &Serial, true);
 
     delay(10000);
 
@@ -63,9 +63,9 @@ void loop() {
         Log.trace("c: %c [%i]\n", c, c);
 
         if (c == 13) {
-            Log.trace("evaluating input '%s'\n", serial_menu_cmd.c_str());
+            Log.debug("evaluating input '%s'\n", serial_menu_cmd.c_str());
             if (!(stateManager->handleCommand(serial_menu_cmd))) {
-                Log.warning("Invalid command or command failed: %s\n", serial_menu_cmd.c_str());
+                Log.warn("Invalid command or command failed: %s\n", serial_menu_cmd.c_str());
             }
             serial_menu_cmd.clear();
             Serial.println(stateManager->getMenuString().c_str());

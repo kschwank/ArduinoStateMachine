@@ -114,71 +114,71 @@ public:
 
     bool transition(Edge *edge, std::vector<std::string> *args = nullptr) {
         if (edge && (_active->_id == edge->getFromNodeId())) {
-            _logger->trace("looking for target node [id:%i]\n", edge->getToNodeId());
+            _logger->debug("looking for target node [id:%i]\n", edge->getToNodeId());
             Node *toNode = _nodes.at(edge->getToNodeId());
             if (!toNode) {
-                _logger->trace("target node does not exist.\n");
+                _logger->debug("target node does not exist.\n");
                 return false;
             }
-            _logger->trace("found target node.\n");
-            _logger->trace("calling beforeExit() on node [%i]\n", _active->_id);
+            _logger->debug("found target node.\n");
+            _logger->debug("calling beforeExit() on node [%i]\n", _active->_id);
             if (!_active->beforeExit(edge->getToNodeId())) {
-                _logger->trace("beforeExit returned false. Aborting transition.");
+                _logger->debug("beforeExit returned false. Aborting transition.");
                 return false;
             }
-            _logger->trace("calling onTransition() on edge [%i->%i]\n", edge->getFromNodeId(), edge->getToNodeId());
+            _logger->debug("calling onTransition() on edge [%i->%i]\n", edge->getFromNodeId(), edge->getToNodeId());
             if (!edge->onTransition(args)) {
-                _logger->trace("onTransition() returned false. Aborting transition.");
+                _logger->debug("onTransition() returned false. Aborting transition.");
                 return false;
             }
-            _logger->trace("calling beforeEnter() on node [%i]\n", edge->getToNodeId());
+            _logger->debug("calling beforeEnter() on node [%i]\n", edge->getToNodeId());
             if (!toNode->beforeEnter(edge->getFromNodeId())) {
-                _logger->trace("beforeEnter returned false. Aborting transition.");
+                _logger->debug("beforeEnter returned false. Aborting transition.");
                 return false;
             }
-            _logger->trace("activating node [%i]\n", edge->getToNodeId());
+            _logger->debug("activating node [%i]\n", edge->getToNodeId());
             _active = toNode;
-            _logger->trace("calling onEnter() on node [%i]\n", _active->_id);
+            _logger->debug("calling onEnter() on node [%i]\n", _active->_id);
             _active->onEnter(args);
         } else if (!edge) {
-            _logger->trace("no edge passed, executing onEnter of current node [%i]\n", _active->_id);
+            _logger->debug("no edge passed, executing onEnter of current node [%i]\n", _active->_id);
             _active->onEnter(args);
         } else {
-            _logger->trace("edge does not start from node [%i]\n", _active->_id);
+            _logger->debug("edge does not start from node [%i]\n", _active->_id);
             return false;
         }
         return true;
     }
 
     Node *getActiveNode() {
-        _logger->trace("active node is '%s'\n", _active->getName().c_str());
+        _logger->debug("active node is '%s'\n", _active->getName().c_str());
         return _active;
     }
 
     void addNode(Node *newNode) {
-        _logger->trace("adding node with id [%i]\n", newNode->_id);
+        _logger->debug("adding node with id [%i]\n", newNode->_id);
         _nodes.insert(std::make_pair(newNode->_id, newNode));
     }
 
     void removeNode(node_id_t nodeId) {
-        _logger->warning("removeNode is not fully implemented, yet. Edges might still point to this node!");
+        _logger->warn("removeNode is not fully implemented, yet. Edges might still point to this node!");
         _nodes.erase(nodeId);
     }
 
     void addEdge(Edge *newEdge) {
-        _logger->trace("adding edge %s (%s) [%i->%i]\n", newEdge->getName().c_str(), newEdge->getDescription().c_str(), newEdge->getFromNodeId(), newEdge->getToNodeId());
+        _logger->debug("adding edge %s (%s) [%i->%i]\n", newEdge->getName().c_str(), newEdge->getDescription().c_str(), newEdge->getFromNodeId(), newEdge->getToNodeId());
         _edges[newEdge->getFromNodeId()].push_back(newEdge);
     }
 
     std::vector<Edge*> *getPossibleTransitions(Node* node = nullptr) {
         if (node == nullptr) node = _active;
 
-        _logger->trace("getting available transition for node [%i]\n", node->_id);
+        _logger->debug("getting available transition for node [%i]\n", node->_id);
         return &_edges[node->_id];
     }
 
     static Edge *findEdgeByName(const std::string& name, std::vector<Edge*> *transitions) {
-        SLog->trace("searching for edge by name '%s'\n", name.c_str());
+        SLog->debug("searching for edge by name '%s'\n", name.c_str());
         transitions->begin();
         for (auto edge : *transitions) {
             if (name == edge->getName()) {
@@ -191,13 +191,13 @@ public:
     void dump() {
         _nodes.begin();
         for (auto node : _nodes) {
-            _logger->trace("node: { id: %i, name: %s }\n", node.second->getId(), node.second->getName().c_str());
+            _logger->debug("node: { id: %i, name: %s }\n", node.second->getId(), node.second->getName().c_str());
         }
 
         _edges.begin();
         for (auto const &edgeentry : _edges) {
             for (auto edge : edgeentry.second) {
-                _logger->trace("edge %s (%s) [%i->%i]\n", edge->getName().c_str(), edge->getDescription().c_str(), edge->getFromNodeId(), edge->getToNodeId());
+                _logger->debug("edge %s (%s) [%i->%i]\n", edge->getName().c_str(), edge->getDescription().c_str(), edge->getFromNodeId(), edge->getToNodeId());
             }
         }
     }
