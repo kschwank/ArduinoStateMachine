@@ -88,6 +88,8 @@ void MenuStateManager::handleInput(char input_char) {
         } else if (!(this->handleCommand(_inputBuffer))) {
             _logger->warn("Invalid command or command failed: %s\n", _inputBuffer.c_str());
         }
+        Serial.println(this->getMenuString().c_str());
+        Serial.print((getPathString(_path) + "> ").c_str());
         _inputBuffer.clear();
         return;
     } else {
